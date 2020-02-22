@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"syscall"
 	"time"
 )
 import "log"
@@ -96,6 +97,11 @@ func MapTask(mapf func(string, string) []KeyValue,task Task) {
 		}
 		defer intermediateFile.Close()
 		files[i] = intermediateFile
+		e := syscall.Flock(int(intermediateFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+		if e != nil {
+			return
+		}
+		defer syscall.Flock(int(intermediateFile.Fd()), syscall.LOCK_UN)
 		encoders[i] = json.NewEncoder(intermediateFile)
 	}
 
@@ -118,6 +124,11 @@ func ReduceTask(reducef func(string, []string) string,task Task){
 		panic("Create file error : " + outputFilename)
 	}
 	defer outputFile.Close()
+	e := syscall.Flock(int(outputFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+	if e != nil {
+		return
+	}
+	defer syscall.Flock(int(outputFile.Fd()), syscall.LOCK_UN)
 
 	data := make(map[string][]string)
 	m := task.Files

@@ -2,6 +2,7 @@ package mr
 
 import (
 	"log"
+	"time"
 )
 import "net"
 import "os"
@@ -41,6 +42,7 @@ type Task struct {
 	State    int
 	NReduce  int
 	Files    int
+	Time     time.Time
 }
 
 // Your code here -- RPC handlers for the worker to call.
@@ -58,6 +60,18 @@ func (m *Master) GetTask(_ *ExampleArgs, reply *GetTaskReply) error {
 				reply.Flag = 0
 
 				m.mapTask[i].State = inProgress
+				m.mapTask[i].Time = time.Now()
+				return nil
+			} else if task.State == inProgress && time.Now().Sub(m.mapTask[i].Time)  > time.Duration(5)*time.Second{
+				reply.Task.Type_ = task.Type_
+				reply.Task.Id = task.Id
+				reply.Task.Filename = task.Filename
+				reply.Task.State = task.State
+				reply.Task.NReduce = task.NReduce
+				reply.Flag = 0
+
+				m.mapTask[i].State = inProgress
+				m.mapTask[i].Time = time.Now()
 				return nil
 			}
 		}
@@ -74,7 +88,20 @@ func (m *Master) GetTask(_ *ExampleArgs, reply *GetTaskReply) error {
 				reply.Task.Files = task.Files
 				reply.Flag = 0
 
+				m.reduceTask[i].Time = time.Now()
 				m.reduceTask[i].State = inProgress
+				return nil
+			} else if task.State == inProgress && time.Now().Sub(m.reduceTask[i].Time)  > time.Duration(5)*time.Second{
+				reply.Task.Type_ = task.Type_
+				reply.Task.Id = task.Id
+				reply.Task.Filename = task.Filename
+				reply.Task.State = task.State
+				reply.Task.NReduce = task.NReduce
+				reply.Task.Files = task.Files
+				reply.Flag = 0
+
+				m.reduceTask[i].State = inProgress
+				m.reduceTask[i].Time = time.Now()
 				return nil
 			}
 		}

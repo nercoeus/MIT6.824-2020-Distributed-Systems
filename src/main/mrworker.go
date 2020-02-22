@@ -16,14 +16,11 @@ import "os"
 import "log"
 
 func main() {
-	var plugname string
 	if len(os.Args) != 2 {
-		plugname = "wc.so"
-	} else{
-		plugname = os.Args[1]
+		panic("error")
 	}
 
-	mapf, reducef := loadPlugin(plugname)
+	mapf, reducef := loadPlugin(os.Args[1])
 
 	mr.Worker(mapf, reducef)
 }
