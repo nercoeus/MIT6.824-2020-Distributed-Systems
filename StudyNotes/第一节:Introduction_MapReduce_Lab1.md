@@ -61,7 +61,7 @@ Map() 和 Reduce() 方式可以并行运行的，可以很容易的通过增加�
 见 Documents 目录下的 MapReduce.pdf 了解更多和 MapReduce 相关知识。
 
 # 实验
-![MapReduce 执行流程](https://github.com/nercoeus/MIT-6.824-2020/blob/master/image/mapreduce.jpg)
+![MapReduce 执行流程](https://github.com/nercoeus/MIT-6.824-2020-Distributed-Systems/blob/master/image/mapreduce.jpg)
 上图是 MapReduce 的执行流程，这里实验代码实现也尽量参照上面的流程进行实现。实验代码见 src/MapReduce 目录。
 
 自带的例子就不进行展示了：大概流程就是先将一系列的文件通过 Map() 函数进行解析为 {key:name,value:1} 的集合，然后在排序后并使用 Reduce() 统计相同词的频率然后统一写入输出文件即可。
