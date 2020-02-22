@@ -17,12 +17,15 @@ import "os"
 import "fmt"
 
 func main() {
+	var filename []string
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "Usage: mrmaster inputfiles...\n")
-		os.Exit(1)
+		filename = append(filename, "pg-being_ernest.txt", "pg-dorian_gray.txt", "pg-frankenstein.txt", "pg-grimm.txt")
+		filename = append(filename, "pg-huckleberry_finn.txt", "pg-metamorphosis.txt", "pg-sherlock_holmes.txt", "pg-tom_sawyer.txt")
+	} else {
+		filename = os.Args[1:]
 	}
-
-	m := mr.MakeMaster(os.Args[1:], 10)
+	m := mr.MakeMaster(filename, 10)
 	for m.Done() == false {
 		time.Sleep(time.Second)
 	}

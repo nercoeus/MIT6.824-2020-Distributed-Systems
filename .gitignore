@@ -1,4 +1,5 @@
 .DS_Store
+mr-*
 mr-out*
 mr-tmp*
 *.so

@@ -1,15 +1,24 @@
 package mr
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
+	"time"
 )
 import "log"
 import "net/rpc"
 import "hash/fnv"
 
+// for sorting by key.
+type ByKey []KeyValue
 
+// for sorting by key.
+func (a ByKey) Len() int           { return len(a) }
+func (a ByKey) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByKey) Less(i, j int) bool { return a[i].Key < a[j].Key }
 //
 // Map functions return a slice of KeyValue.
 //
@@ -39,99 +48,121 @@ func Worker(mapf func(string, string) []KeyValue,
 
 	// uncomment to send the Example RPC to the master.
 	for {
-		filename := GetOneFile()
-		if filename == ""{
+		task := GetTask()
+		switch task.Flag{
+		case 1:
+			time.Sleep(time.Second)
+			continue
+		case 2:
 			return
 		}
-		intermediate := Map(mapf,filename)
-		storefile := Reduce(reducef, filename, intermediate)
-		CompareWork(filename, storefile)
+		switch task.Task.Type_ {
+		case mapTask:
+			MapTask(mapf,task.Task)
+			TaskCompare(task.Task.Type_, task.Task.Id)
+		case reduceTask:
+			ReduceTask(reducef, task.Task)
+			TaskCompare(task.Task.Type_, task.Task.Id)
+		default:
+			panic("worker panic")
+		}
+		time.Sleep(time.Second)
 	}
 }
 
-func Map(mapf func(string, string) []KeyValue,filename string) []KeyValue {
-	var intermediate []KeyValue
-	file, err := os.Open(filename)
+func MapTask(mapf func(string, string) []KeyValue,task Task) {
+	file, err := os.Open(task.Filename)
 	if err != nil {
-		log.Fatalf("cannot open %v", filename)
+		log.Fatalf("cannot open %v", task.Filename)
+		return
 	}
 	content, err := ioutil.ReadAll(file)
 	if err != nil {
-		log.Fatalf("cannot read %v", filename)
+		log.Fatalf("cannot read %v", task.Filename)
+		return
 	}
 	file.Close()
-	kva := mapf(filename, string(content))
-	intermediate = append(intermediate, kva...)
-	return intermediate
-}
-func Reduce(reducef func(string, []string) string,filename string, intermediate []KeyValue)string{
-	oname := "mr-out-" + filename
-	ofile, _ := os.Create(oname)
+	kva := mapf(task.Filename, string(content))
 
-	//
-	// call Reduce on each distinct key in intermediate[],
-	// and print the result to mr-out-0.
-	//
-	i := 0
-	for i < len(intermediate) {
-		j := i + 1
-		for j < len(intermediate) && intermediate[j].Key == intermediate[i].Key {
-			j++
+	fileCount := task.NReduce
+	files := make(map[int]*os.File, fileCount)
+	encoders := make([]*json.Encoder, fileCount)
+
+	for i := 0;i<fileCount;i++ {
+		finalName := intermediateFilename(task.Id, i, task.NReduce)
+		intermediateFile, err := os.Create(finalName)
+		if err != nil{
+			panic("Create file error : " + task.Filename)
 		}
-		values := []string{}
-		for k := i; k < j; k++ {
-			values = append(values, intermediate[k].Value)
+		defer intermediateFile.Close()
+		files[i] = intermediateFile
+		encoders[i] = json.NewEncoder(intermediateFile)
+	}
+
+	//// TODO 可以提前执行一部分 reduce 工作
+	//for i := range kva {
+	//	reduceNum := ihash(kva[i].Key) % fileCount
+	//	fmt.Fprintf(files[reduceNum], "%v %v\n", kva[i].Key, kva[i].Value)
+	//}
+	for i := range kva {
+		reduceNum := ihash(kva[i].Key) % fileCount
+		encoders[reduceNum].Encode(kva[i])
+	}
+}
+
+func ReduceTask(reducef func(string, []string) string,task Task){
+
+	outputFilename := "mr-out-reduce-"+strconv.Itoa(task.Id)+".txt"
+	outputFile, err := os.Create(outputFilename)
+	if err != nil{
+		panic("Create file error : " + outputFilename)
+	}
+	defer outputFile.Close()
+
+	data := make(map[string][]string)
+	m := task.Files
+	files := make(map[int]*os.File, m)
+	for i := 0;i < m;i++{
+		finalName := intermediateFilename(i, task.Id, task.NReduce)
+		file, err := os.Open(finalName)
+		if err != nil {
+			log.Fatalf("cannot open %v", finalName)
+			return
 		}
-		output := reducef(intermediate[i].Key, values)
-		// log.Println(output)
-		// this is the correct format for each line of Reduce output.
-		fmt.Fprintf(ofile, "%v %v\n", intermediate[i].Key, output)
-
-		i = j
+		defer file.Close()
+		files[i] = file
+		// 处理中间文件数据
+		decoder := json.NewDecoder(file)
+		for {
+			kv := new(KeyValue)
+			err = decoder.Decode(kv)
+			if err != nil {
+				break
+			}
+			data[kv.Key] = append(data[kv.Key], kv.Value)
+		}
 	}
-	ofile.Close()
-	return oname
+	for key := range data {
+		value := reducef(key, data[key])
+		outputFile.WriteString(fmt.Sprintf("%v %v\n", key, value))
+	}
 }
 
-//
-// example function to show how to make an RPC call to the master.
-//
-// the RPC argument and reply types are defined in rpc.go.
-//
-func CallExample() {
-
-	// declare an argument structure.
+func GetTask() GetTaskReply{
 	args := ExampleArgs{}
-
-	// fill in the argument(s).
-	args.X = 99
-
-	// declare a reply structure.
-	reply := ExampleReply{}
-
-	// send the RPC request, wait for the reply.
-	call("Master.Example", &args, &reply)
-
-	// reply.Y should be 100.
-	fmt.Printf("reply.Y %v\n", reply.Y)
+	reply := GetTaskReply{}
+	call("Master.GetTask", &args, &reply)
+	return reply
 }
 
-func GetOneFile() string{
-	args := ExampleArgs{}
-	reply := FilenameReply{}
-	call("Master.GetFile", &args, &reply)
-	return reply.FileName
-}
-
-func CompareWork(filename string, storefile string){
-	args := CompareWorkArgs{
-		Filename:  filename,
-		StoreFile: storefile,
+func TaskCompare(type_ int, id int){
+	args := TaskCompareArgs{
+		Type:type_,
+		ID:id,
 	}
 	reply := ExampleReply{}
-	call("Master.CompareWork", &args,&reply)
+	call("Master.TaskCompare", &args, &reply)
 }
-
 //
 // send an RPC request to the master, wait for the response.
 // usually returns true.
@@ -153,4 +184,8 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 
 	fmt.Println(err)
 	return false
+}
+
+func intermediateFilename(i int,j int, n int) string {
+	return "mr-inter-" + strconv.Itoa(i*n+j)
 }

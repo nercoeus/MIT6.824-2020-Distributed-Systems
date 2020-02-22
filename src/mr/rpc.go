@@ -9,29 +9,19 @@ package mr
 import "os"
 import "strconv"
 
-//
-// example to show how to declare the arguments
-// and reply for an RPC.
-//
+type ExampleArgs struct{}
 
-type ExampleArgs struct {
-	X int
+type ExampleReply struct{}
+
+type GetTaskReply struct{
+	Flag int
+	Task Task
 }
 
-type ExampleReply struct {
-	Y int
+type TaskCompareArgs struct{
+	Type int
+	ID int
 }
-
-type FilenameReply struct{
-	FileName string
-}
-
-type CompareWorkArgs struct{
-	Filename string
-	StoreFile string
-}
-
-// Add your RPC definitions here.
 
 
 // Cook up a unique-ish UNIX-domain socket name

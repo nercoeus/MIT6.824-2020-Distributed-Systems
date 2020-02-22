@@ -169,19 +169,19 @@ SOCKNAME=/var/tmp/824-mr-`id -u`
 
 ( while [ -e $SOCKNAME -a ! -f mr-done ]
   do
-    ../mrworker ../../mrapps/crash.so 
+    ../mrworker ../../mrapps/crash.so
     sleep 1
   done ) &
 
 ( while [ -e $SOCKNAME -a ! -f mr-done ]
   do
-    ../mrworker ../../mrapps/crash.so 
+    ../mrworker ../../mrapps/crash.so
     sleep 1
   done ) &
 
 while [ -e $SOCKNAME -a ! -f mr-done ]
 do
-  ../mrworker ../../mrapps/crash.so 
+  ../mrworker ../../mrapps/crash.so
   sleep 1
 done
 
