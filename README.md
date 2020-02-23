@@ -13,8 +13,9 @@ Bilibili: [https://www.bilibili.com/video/av87684880?from=search&seid=1728504458
 # 课程笔记列表
 
 1. [Introduction_MapReduce_Lab1](https://github.com/nercoeus/MIT-6.824-2020-Distributed-Systems/blob/master/StudyNotes/%E7%AC%AC%E4%B8%80%E8%8A%82:Introduction_MapReduce_Lab1.md)
+2. [golang RPC & threads](https://github.com/nercoeus/MIT-6.824-2020-Distributed-Systems/blob/master/StudyNotes/%E7%AC%AC%E4%BA%8C%E8%8A%82:RPC%26threads.md)
 
-# 论文列表
+# 论文列表(带笔记)
 
 1. [MapReduce](https://github.com/nercoeus/MIT-6.824-2020-Distributed-Systems/blob/master/Documents/mapreduce.pdf)
 
