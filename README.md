@@ -17,3 +17,8 @@ Bilibili: [https://www.bilibili.com/video/av87684880?from=search&seid=1728504458
 # 论文列表
 
 1. [MapReduce](https://github.com/nercoeus/MIT-6.824-2020-Distributed-Systems/blob/master/Documents/mapreduce.pdf)
+
+
+# 实验情况
+
+1. Lab1: MapReduce PASS ALL
