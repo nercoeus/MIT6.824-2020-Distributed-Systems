@@ -10,11 +10,11 @@ package main
 //
 
 import (
-	"../mr"
+	"fmt"
+	"mr"
+	"os"
+	"time"
 )
-import "time"
-import "os"
-import "fmt"
 
 func main() {
 	if len(os.Args) < 2 {
