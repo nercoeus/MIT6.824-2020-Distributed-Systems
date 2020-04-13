@@ -23,3 +23,8 @@ Bilibili: [https://www.bilibili.com/video/av87684880?from=search&seid=1728504458
 # 实验情况
 
 1. Lab1: MapReduce PASS ALL
+
+# 参考资料
+
+1. [Students' Guide to Raft](https://thesquareplanet.com/blog/students-guide-to-raft/)
+2. [Raft 动画演示](http://thesecretlivesofdata.com/raft/)
