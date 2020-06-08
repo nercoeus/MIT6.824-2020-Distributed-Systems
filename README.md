@@ -20,9 +20,10 @@ Bilibili: [https://www.bilibili.com/video/av87684880?from=search&seid=1728504458
 1. [MapReduce](https://github.com/nercoeus/MIT-6.824-2020-Distributed-Systems/blob/master/Documents/mapreduce.pdf)
 
 
-# 实验情况(根据课程要求暂时不提供实验代码,又需要可以联系本人获取当前进度代码)
+# 实验情况(根据课程要求暂时不提供实验代码,有需要可以联系本人获取当前进度代码)
 
 1. Lab1: MapReduce PASS ALL
+2. Lab2: PASS 2A
 
 # 参考资料
 
