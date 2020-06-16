@@ -6,7 +6,7 @@
 - 更加方便使用的 RPC
 - 类型安全
 - 提供 GC 机制
-- golang 简单易用
+- 相比于 c++, golang 更加简单易用
 
 ## golang 中的 goroutine（自行了解）
 并发对分布式编程是十分重要的，并且 go 的 goroutine 是十分简单易用的。
